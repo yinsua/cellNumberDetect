@@ -37,10 +37,12 @@ Mat gray;
 Mat src;
 int edgeThresh = 220;
 int holeThresh = 0;
-int thresh = 100;
+int thresh = 250;
 int maxElementPos = 10;
-int ElementPosThresh = 10;
+int ElementPosThresh = 11;
 int ElementSharp = MORPH_RECT;
+int blockSize = 100;
+int offset = 5;
 // <-----------------
 
 void cvText(cv::Mat& img, const char* text, int x, int y)  
@@ -97,9 +99,11 @@ void cvEdgeDetection(Mat bImage){
     cvtColor(dst2,gray2,COLOR_RGB2GRAY);
     cvtColor(dst3,gray3,COLOR_RGB2GRAY);
 
+    /*
     blur(gray1,gray1,Size(3,3));
     blur(gray2,gray3,Size(3,3));
     blur(gray3,gray3,Size(3,3));
+    */
 
     int _width  = src.cols;
     int _height = src.rows;
@@ -117,19 +121,31 @@ void cvEdgeDetection(Mat bImage){
     IplImage tmpImage3;
     tmpImage3 = gray3;
 
+    //imshow("gray3",gray3);
+
+    //cvShowImage("reverse-before",&tmpImage3);
+
     cvNot(&tmpImage3,&tmpImage3);
 
-    cvShowImage("reverse",&tmpImage3);
+    //cvShowImage("reverse-after",&tmpImage3);
 
+    /*
     cvThreshold(&tmpImage1,img1,thresh,255,CV_THRESH_BINARY);
     cvThreshold(&tmpImage2,img2,thresh,255,CV_THRESH_BINARY);
     cvThreshold(&tmpImage3,img3,thresh,255,CV_THRESH_BINARY);
+    */
 
-    /*
     cvAdaptiveThreshold(&tmpImage1,img1,255);
     cvAdaptiveThreshold(&tmpImage2,img2,255);
-    cvAdaptiveThreshold(&tmpImage3,img3,255);
-    */
+    cvAdaptiveThreshold(
+            &tmpImage3,
+            img3,
+            255,
+            CV_ADAPTIVE_THRESH_MEAN_C,
+            CV_THRESH_BINARY,
+            blockSize<3?3:blockSize%2?blockSize:blockSize-1,
+            offset
+            );
     
     //cvShowImage("Erode/Dilate Threshold",img1);
     //cvShowImage("Open/Close Threshold",  img2);
@@ -229,6 +245,8 @@ int main( int argc, const char** argv ){
     createTrackbar("Hole Threshold", "Distance Map", &holeThresh, 255, onTrackbar, 0);
     createTrackbar("ElementPos Threshold", "Distance Map", &ElementPosThresh, 64, onTrackbar, 0);
     createTrackbar("Threshold", "Distance Map", &thresh, 255, onTrackbar, 0);
+    createTrackbar("Block Size", "Distance Map", &blockSize, 500, onTrackbar, 0);
+    createTrackbar("Offset", "Distance Map", &offset, 100, onTrackbar, 0);
 
     for(;;)
     {
